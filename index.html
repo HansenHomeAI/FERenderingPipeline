@@ -7,7 +7,9 @@
   <style>
     /* Basic glassmorphic styling */
     * {
-      margin: 0; padding: 0; box-sizing: border-box;
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
     }
     body {
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -91,11 +93,30 @@
     button:hover {
       opacity: 0.9;
     }
-    #logs {
+    /* New container that frames the logs like a terminal */
+    #logs-container {
       margin-top: 24px;
-      color: #ccc;
-      font-size: 0.9rem;
-      white-space: pre-wrap; /* So newlines are preserved */
+      background-color: #111;
+      border-radius: 8px;
+      max-height: 250px;       /* Adjust as desired */
+      overflow-y: auto;
+      padding: 16px;
+    }
+    /* Neon-green, monospaced logs with a blinking block cursor */
+    #logs {
+      color: #0f0;
+      font-family: "Courier New", Courier, monospace;
+      white-space: pre-wrap; /* preserve newlines */
+      position: relative;
+    }
+    #logs::after {
+      content: "█";
+      display: inline-block;
+      margin-left: 5px;
+      animation: blink 1s steps(1, start) infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
     }
   </style>
 </head>
@@ -115,13 +136,16 @@
       </select>
     </div>
     <button id="startBtn">Start Training</button>
-    <div id="logs"></div>
+
+    <!-- New logs container -->
+    <div id="logs-container">
+      <div id="logs"></div>
+    </div>
   </div>
 
   <script>
     const API_GATEWAY_URL = "https://hkp7hyqjt4.execute-api.us-west-2.amazonaws.com/prod";
   
-
     let currentJobId = null;
     let pollingTimer = null;
 
@@ -129,6 +153,7 @@
       // Clear logs each time we start
       const logsEl = document.getElementById("logs");
       logsEl.innerText = "Starting training job...\n";
+      autoScrollLogs();
 
       const archiveName = document.getElementById("archiveName").value.trim();
       const containerName = document.getElementById("containerName").value;
@@ -156,6 +181,7 @@
           `Container Used: ${data.containerUsed}\n` +
           `Input Data: ${data.inputData}\n\n` +
           `Now polling logs...\n`;
+        autoScrollLogs();
 
         currentJobId = data.jobId;
 
@@ -166,6 +192,7 @@
         pollingTimer = setInterval(pollLogs, 10000); // poll every 10s
       } catch (err) {
         logsEl.innerText += `Failed to start job: ${err.message}\n`;
+        autoScrollLogs();
       }
     });
 
@@ -174,6 +201,7 @@
       const logsEl = document.getElementById("logs");
 
       logsEl.innerText += `\nPolling logs for jobId: ${currentJobId}...\n`;
+      autoScrollLogs();
 
       try {
         // GET request to /logs?jobId=xxx
@@ -191,9 +219,16 @@
           logsEl.innerText += `SageMaker TrainingJobStatus: ${smStatus}\n`;
           logsEl.innerText += `SageMaker SecondaryStatus: ${smSecStatus}\n`;
         }
+        autoScrollLogs();
       } catch (err) {
         logsEl.innerText += `Error polling logs: ${err.message}\n`;
+        autoScrollLogs();
       }
+    }
+
+    function autoScrollLogs() {
+      const logsContainer = document.getElementById("logs-container");
+      logsContainer.scrollTop = logsContainer.scrollHeight;
     }
   </script>
 
