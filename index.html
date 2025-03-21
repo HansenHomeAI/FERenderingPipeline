@@ -5,7 +5,7 @@
   <title>3D Rendering Pipeline</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Basic glassmorphic styling */
+    /* Basic glassmorphic styling and resets */
     * {
       margin: 0; 
       padding: 0; 
@@ -17,8 +17,13 @@
       color: #fff;
       min-height: 100vh;
     }
+
+    /* Main container now a "dashboard" layout */
     .container {
-      max-width: 600px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1200px;
       margin: 80px auto;
       padding: 20px;
       border-radius: 16px;
@@ -45,11 +50,20 @@
       mask-composite: exclude;
       pointer-events: none;
     }
-    h1 {
+
+    /* Left (form) and right (logs) halves */
+    .left-half, .right-half {
+      flex: 1;
+      min-width: 300px; /* so it doesn't shrink too small */
+      margin: 10px;
+      position: relative;
+    }
+    .left-half h1 {
       text-align: center;
       margin-bottom: 1rem;
       font-weight: 500;
     }
+
     .form-group {
       margin-bottom: 16px;
     }
@@ -59,7 +73,7 @@
       color: #ccc;
       font-size: 0.95rem;
     }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px;
       border-radius: 8px;
@@ -80,6 +94,19 @@
       background-size: 16px;
       padding-right: 40px; /* extra space for the arrow */
     }
+
+    /* Special terminal-esque style for the trainCommand field (purple) */
+    .terminal-like label {
+      color: #f0f;
+    }
+    .terminal-like textarea#trainCommand {
+      font-family: "Courier New", Courier, monospace;
+      background-color: #111;
+      color: #f0f; /* neon purple text */
+      min-height: 100px;
+      resize: vertical;
+    }
+
     button {
       background: #FF4F00;
       border: none;
@@ -93,12 +120,13 @@
     button:hover {
       opacity: 0.9;
     }
-    /* New container that frames the logs like a terminal */
+
+    /* Right-half logs container styled like a hacking console */
     #logs-container {
       margin-top: 24px;
       background-color: #111;
       border-radius: 8px;
-      max-height: 250px;       /* Adjust as desired */
+      max-height: 300px; /* Adjust as needed */
       overflow-y: auto;
       padding: 16px;
     }
@@ -123,23 +151,33 @@
 <body>
 
   <div class="container">
-    <h1>3D Rendering Pipeline</h1>
-    <div class="form-group">
-      <label for="archiveName">S3 Archive/File Name (in user-submissions bucket):</label>
-      <input type="text" id="archiveName" placeholder="e.g. 1742105708797-13zf5v-Archive.zip" />
+    <!-- Left side: form inputs -->
+    <div class="left-half">
+      <h1>3D Rendering Pipeline</h1>
+      <div class="form-group">
+        <label for="archiveName">S3 Archive/File Name (in user-submissions bucket):</label>
+        <input type="text" id="archiveName" placeholder="e.g. 1742105708797-13zf5v-Archive.zip" />
+      </div>
+      <div class="form-group">
+        <label for="containerName">Container Name (ECR repository):</label>
+        <select id="containerName">
+          <option value="nerfstudio" selected>nerfstudio</option>
+          <!-- If you have more ECR repos, list them here -->
+        </select>
+      </div>
+      <!-- New trainCommand field as a textarea with "terminal-like" style -->
+      <div class="form-group terminal-like">
+        <label for="trainCommand">Training Command:</label>
+        <textarea id="trainCommand" placeholder="e.g. ns-train nerfacto --data ..."></textarea>
+      </div>
+      <button id="startBtn">Start Training</button>
     </div>
-    <div class="form-group">
-      <label for="containerName">Container Name (ECR repository):</label>
-      <select id="containerName">
-        <option value="nerfstudio" selected>nerfstudio</option>
-        <!-- If you have more ECR repos, list them here -->
-      </select>
-    </div>
-    <button id="startBtn">Start Training</button>
 
-    <!-- New logs container -->
-    <div id="logs-container">
-      <div id="logs"></div>
+    <!-- Right side: logs -->
+    <div class="right-half">
+      <div id="logs-container">
+        <div id="logs"></div>
+      </div>
     </div>
   </div>
 
@@ -157,11 +195,13 @@
 
       const archiveName = document.getElementById("archiveName").value.trim();
       const containerName = document.getElementById("containerName").value;
+      const trainCommand = document.getElementById("trainCommand").value.trim();
 
       // Build JSON payload
       const payload = {
         s3ArchiveName: archiveName,
-        containerName: containerName
+        containerName: containerName,
+        trainCommand: trainCommand
       };
 
       try {
@@ -204,7 +244,7 @@
       autoScrollLogs();
 
       try {
-        // GET request to /logs?jobId=xxx
+        // GET request to /logs?jobId=${currentJobId}
         const response = await fetch(`${API_GATEWAY_URL}/logs?jobId=${currentJobId}`);
         if (!response.ok) {
           throw new Error(`Logs Error: ${response.statusText}`);
@@ -231,6 +271,5 @@
       logsContainer.scrollTop = logsContainer.scrollHeight;
     }
   </script>
-
 </body>
 </html>
