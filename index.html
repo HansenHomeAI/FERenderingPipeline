@@ -130,17 +130,20 @@
       overflow-y: auto;
       padding: 16px;
     }
-    /* Neon-green, monospaced logs with a blinking block cursor */
+    /* Neon-green, monospaced logs. The blinking block is conditional. */
     #logs {
       color: #0f0;
       font-family: "Courier New", Courier, monospace;
       white-space: pre-wrap; /* preserve newlines */
       position: relative;
     }
+    /* Always show the block cursor, but only blink if .blinking is applied */
     #logs::after {
       content: "█";
       display: inline-block;
       margin-left: 5px;
+    }
+    #logs.blinking::after {
       animation: blink 1s steps(1, start) infinite;
     }
     @keyframes blink {
@@ -229,6 +232,9 @@
         if (pollingTimer) {
           clearInterval(pollingTimer);
         }
+        // Start blinking
+        logsEl.classList.add("blinking");
+
         pollingTimer = setInterval(pollLogs, 10000); // poll every 10s
       } catch (err) {
         logsEl.innerText += `Failed to start job: ${err.message}\n`;
@@ -258,6 +264,15 @@
           const smSecStatus = data.sageMakerJobDescription.SecondaryStatus || "Unknown";
           logsEl.innerText += `SageMaker TrainingJobStatus: ${smStatus}\n`;
           logsEl.innerText += `SageMaker SecondaryStatus: ${smSecStatus}\n`;
+
+          // If SageMaker reports job done (Completed or Failed), stop polling
+          if (smStatus === "Completed" || smStatus === "Failed") {
+            logsEl.innerText += `Job has ended with status: ${smStatus}. Stopping polling.\n`;
+            clearInterval(pollingTimer);
+            pollingTimer = null;
+            // Stop blinking
+            logsEl.classList.remove("blinking");
+          }
         }
         autoScrollLogs();
       } catch (err) {
