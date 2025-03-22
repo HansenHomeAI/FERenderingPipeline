@@ -296,8 +296,8 @@
           logsEl.innerText += `SageMaker TrainingJobStatus: ${smStatus}\n`;
           logsEl.innerText += `SageMaker SecondaryStatus: ${smSecStatus}\n`;
 
-          // If SageMaker reports job done (Completed or Failed), stop polling
-          if (smStatus === "Completed" || smStatus === "Failed") {
+          // If SageMaker reports job done (Completed, Failed, or Stopped), stop polling
+          if (smStatus === "Completed" || smStatus === "Failed" || smStatus === "Stopped") {
             logsEl.innerText += `Job has ended with status: ${smStatus}. Stopping polling.\n`;
             clearInterval(pollingTimer);
             pollingTimer = null;
