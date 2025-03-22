@@ -174,6 +174,7 @@
         <textarea id="trainCommand" placeholder="e.g. ns-train nerfacto --data ..."></textarea>
       </div>
       <button id="startBtn">Start Training</button>
+      <button id="stopBtn">Stop Training</button>
     </div>
 
     <!-- Right side: logs -->
@@ -242,6 +243,36 @@
       }
     });
 
+    document.getElementById("stopBtn").addEventListener("click", async () => {
+      const logsEl = document.getElementById("logs");
+    
+      if (!currentJobId) {
+        logsEl.innerText += "No current jobId to stop!\n";
+        return;
+      }
+    
+      try {
+        const response = await fetch(`${API_GATEWAY_URL}/stop`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: currentJobId })
+        });
+    
+        if (!response.ok) {
+          throw new Error(`Stop Error: ${response.statusText}`);
+        }
+    
+        const data = await response.json();
+        logsEl.innerText += `Stopping job: ${data.jobId}\n`;
+        autoScrollLogs();
+      } catch (err) {
+        logsEl.innerText += `Error stopping job: ${err.message}\n`;
+        autoScrollLogs();
+      }
+    });
+
+    
+    
     async function pollLogs() {
       if (!currentJobId) return;
       const logsEl = document.getElementById("logs");
