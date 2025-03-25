@@ -84,7 +84,8 @@
       font-size: 1rem;
     }
     /* Custom styling for the dropdown menu (containerName) */
-    #containerName {
+    #containerName,
+    #reconContainerName {
       appearance: none;
       -webkit-appearance: none;
       -moz-appearance: none;
@@ -162,17 +163,19 @@
         <input type="text" id="archiveName" placeholder="e.g. 1742105708797-13zf5v-Archive.zip" />
       </div>
       <div class="form-group">
-        <label for="containerName">Container Name (ECR repository):</label>
+        <label for="containerName">Train Container (ECR repository):</label>
         <select id="containerName">
           <option value="nerfstudio" selected>nerfstudio</option>
-          <!-- If you have more ECR repos, list them here -->
+          <!-- Add any additional container options if needed -->
         </select>
-        <label for="trainContainerName">Train Container (ECR repository):</label>
-        <select id="trainContainerName">
-          <option value="nerfstudio" selected>nerfstudio</option>
-          <option value="someOtherTrain">someOtherTrain</option>
+        
+        <label for="reconContainerName">Recon Container (ECR repository):</label>
+        <select id="reconContainerName">
+          <option value="colmap" selected>colmap</option>
+          <!-- Add any additional container options if needed -->
         </select>
       </div>
+
       <!-- New trainCommand field as a textarea with "terminal-like" style -->
       <div class="form-group terminal-like">
         <label for="trainCommand">Training Command:</label>
