@@ -167,6 +167,11 @@
           <option value="nerfstudio" selected>nerfstudio</option>
           <!-- If you have more ECR repos, list them here -->
         </select>
+        <label for="trainContainerName">Train Container (ECR repository):</label>
+        <select id="trainContainerName">
+          <option value="nerfstudio" selected>nerfstudio</option>
+          <option value="someOtherTrain">someOtherTrain</option>
+        </select>
       </div>
       <!-- New trainCommand field as a textarea with "terminal-like" style -->
       <div class="form-group terminal-like">
@@ -200,10 +205,12 @@
       const archiveName = document.getElementById("archiveName").value.trim();
       const containerName = document.getElementById("containerName").value;
       const trainCommand = document.getElementById("trainCommand").value.trim();
+      const reconName = document.getElementById("reconContainerName").value;
 
       // Build JSON payload
       const payload = {
         s3ArchiveName: archiveName,
+        reconContainer: reconName,
         containerName: containerName,
         trainCommand: trainCommand
       };
